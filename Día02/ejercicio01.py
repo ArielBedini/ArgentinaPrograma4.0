@@ -15,12 +15,6 @@ else:
 #print (primos)
 
 
-def esprimo(num):
-    if all(num % y != 0 for y in range(2,num-1)):
-        return True
-    else:
-        return False
-
 import math
 num = int(input("Ingrese un número: "))
 #print(num,"es un mumero primo? ",esprimo(num))
