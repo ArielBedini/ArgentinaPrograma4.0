@@ -1,17 +1,5 @@
-fileFuente = "source.txt"
-fileDestino = "resultado.txt"
-lineaTxt = ""
+## EJERCICIO 5: Escribir un programa que encuentre el máximo común divisor entre dos números.
 
-cantidadPalabras = 0
-with open(fileFuente) as rfile:
-    for linea in rfile.readlines():
-        # contar palabras de linea
-        palabrasLinea = len(linea.split(" "))
-        if palabrasLinea > cantidadPalabras:
-            cantidadPalabras = palabrasLinea
-            lineaTxt = linea
+numero1 = int(input("Ingrese un numero: "))
 
-
-
-with open(fileDestino,'w') as wfile:
-    wfile.write(lineaTxt)
+print(numero1)
