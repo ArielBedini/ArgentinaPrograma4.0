@@ -12,7 +12,7 @@ def suma_digitos(numero):
 
 numero = int(input("Ingrese un número entero no negativo: "))
 suma = suma_digitos(numero)
-if(suma != None):
+if suma != None:
     print("La suma de los dígitos del número {} es igual a: {}".format(numero,suma))
 
 

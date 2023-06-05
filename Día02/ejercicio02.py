@@ -5,7 +5,7 @@ import math
 def palidromo(palabra):
     long = len(palabra)
     # media_long = math.ceil(long) // 2
-    if(long<=2):
+    if long<=2:
         return False
     else:
         return all(palabra[i] == palabra[long-i-1] for i in range(0,(long//2)+1))

@@ -61,7 +61,7 @@ def ver_si_es_primo(numero):
     maximo = math.ceil(math.sqrt(num)) + 1  ## tambien podemos usar la formula: int(math.sqrt(num))+1
     return  all(num % y for y in range(2,maximo))
 
-if(ver_si_es_primo(num)):
+if ver_si_es_primo(num):
     print("El número {} es primo!!".format(num))
 else:
     print("{} NO es primo!!".format(num))
