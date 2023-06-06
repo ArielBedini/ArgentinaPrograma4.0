@@ -10,4 +10,4 @@ def binario(n):
 num = int(input("Ingrese un número entero"))
 
 
-print(binario(num))
+print(num,"en binario es:", binario(num))
