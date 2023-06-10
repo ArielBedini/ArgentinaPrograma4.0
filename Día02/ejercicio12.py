@@ -1,6 +1,7 @@
-fileFuente = "source.txt"
+fileFuente = "origen.txt"
 fileDestino = "resultado.txt"
 lineaTxt = ""
+
 
 cantidadPalabras = 0
 with open(fileFuente) as rfile:
@@ -10,8 +11,6 @@ with open(fileFuente) as rfile:
         if palabrasLinea > cantidadPalabras:
             cantidadPalabras = palabrasLinea
             lineaTxt = linea
-
-
 
 with open(fileDestino,'w') as wfile:
     wfile.write(lineaTxt)

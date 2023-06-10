@@ -10,9 +10,9 @@
 
 try:
     n = int(input("Ingrese un numero entero: "))
-    print("Calculamos n^2, para n={}: {}".format(n,pow(n,2)))
-    print("Calculamos n^3, para n={}: {}".format(n,pow(n,3)))
-    print("Calculamos n^n, para n={}: {}".format(n,pow(n,n)))
+    print("Calculamos n^2, para n={}: {}".format(n,n**2))  # equivalente a pow(n,2)
+    print("Calculamos n^3, para n={}: {}".format(n,n**3))  # equivalente a pow(n,3)
+    print("Calculamos n^n, para n={}: {}".format(n,n**n))  # equivalente a pow(n,n)
 except ValueError:
     print("Se produjo un erro de ingreso: Debe introducir un número entero")
 except Exception as err:

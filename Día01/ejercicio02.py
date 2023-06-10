@@ -8,7 +8,8 @@ else:
         a = int(lista[0])
         b = int(lista[1])
         c = int(lista[2])
-
+        x = a + c + b
+        print(x)
         print("Determinar si a=2*b, para a={} y b={}".format(a,b))
         condicion = ""
         if(a != b*2):

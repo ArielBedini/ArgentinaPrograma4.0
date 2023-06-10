@@ -314,8 +314,10 @@ def jugar_partida(lista_palabras):
     
     print("jugar_partida no implementado.") # TO DO... Eliminar esta linea cuando se implemente la función.
     
+    cantidad_manos = int(imput("Ingrese el número de manos a jugar: "))
 
-
+    while manos_jugadas > cantidad_manos:
+        
 #
 # Construye las estructuras de datos necesarias para jugar la partida.
 # No eliminar la condición "if __name__ == '__main__':" Este código se ejecuta

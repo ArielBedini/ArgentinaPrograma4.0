@@ -8,9 +8,14 @@ try:
     cantidad = 0    
     for i in range(num1,num2):
         if i%3 == 0:
-            print(i)
             cantidad += 1
+
 except ValueError:
     print("Debe ingresar números enteros")
 
 print("La cantidad de múltiplos de 3 entre {} y {} es: {}".format(num1,num2,cantidad))
+print("La cantidad de múltiplos de 3 entre {} y {} es: {}"
+        .format(num1,num2,len(list(filter(lambda x: x % 3 == 0, list(range(num1,num2+1)))))))
+
+
+
