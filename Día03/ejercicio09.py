@@ -14,6 +14,7 @@ print(listaconjunta)
 for (a,b) in  zip(lista_letras,lista_numeros):
     print(a,b)
 
+
 # Opción 3
 print([x for x in zip(lista_letras,lista_numeros)])
 
