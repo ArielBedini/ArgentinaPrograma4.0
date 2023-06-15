@@ -7,7 +7,7 @@ Created on Mon Jun 29 23:32:49 2020
 
 import math
 import random
-
+import os
 
 VOCALES = 'aeiou'
 CONSONANTES = 'bcdfghjklmnpqrstvwxyz'
@@ -22,6 +22,27 @@ VALORES_LETRAS = {
 #
 
 ARCHIVO_PALABRAS = "palabras.txt"
+
+def limpiar_pantalla():
+    pass
+
+def control_pantalla(f, txt):
+    def limpiar_pantalla():
+        if os.name == 'nt':  # Para sistemas Windows
+            os.system('cls')
+        else:  # Para sistemas Unix/Linux/Mac
+            os.system('clear')
+    def centrar_texto(texto):
+        terminal_width = os.get_terminal_size().columns
+        espacios = (terminal_width - len(texto)) // 2
+        texto_centralizado = " " * espacios + texto
+        return texto_centralizado
+
+    if f == "limpiar_pantalla":
+        limpiar_pantalla()
+    if f == "centrar_texto":
+        return centrar_texto(txt)
+
 
 def cargar_palabras():
     """
@@ -312,11 +333,67 @@ def jugar_partida(lista_palabras):
     lista_palabras: lista de cadenas en minúsculas
     """
     
+    
     print("jugar_partida no implementado.") # TO DO... Eliminar esta linea cuando se implemente la función.
     
-    cantidad_manos = int(imput("Ingrese el número de manos a jugar: "))
+    ##! Ciclo del Juego
+    ## Inicializar variables de control
+    nanos_jugadas = 0
+    puntaje_manos = ()
+    puntaje_juego = 0
+    quedan_manos_por_jugar = False
+    intercambio_realizado = False
+    es_mano_repetida = False
 
-    while manos_jugadas > cantidad_manos:
+    ## Personalizamos el error en el ingreso de la cantidad de patidas a jugar
+    class NumeroNegativo(Exception):
+        pass
+
+    ## Iniciamos el ciclo de control de ingreso de un valor entero positvo por parte del usuario
+    ## Si el número de manos a juagar es 0 se sale del juego!
+    while cantidad_manos <= 0:
+        try:
+            cantidad_manos = int(input(control_pantalla("centrar_texto", "Ingrese el número de manos a jugar (x para salir): ")))
+            if cantidad_manos <= 0:
+                raise NumeroNegativo("Debe ingresar numeros positivos")
+            # if cantidad_manos == 0:
+            #     quedan_manos_por_jugar = False
+            #     print(".... Saliste de WordGame, .... te esperamos para un nuevo desafío!!")
+            #     continue
+        except ValueError:
+            print("Debe ingresar un número entero")
+        except NumeroNegativo as e:
+            print(e)
+            continue
+
+    ## Inicio del Ciclo del Juego: "mientras quede manos por jugar"
+    while  quedan_manos_por_jugar:
+
+
+        print("Jugando mano")
+        mano_actual = repartir_mano(TAMANIO_MANO)
+        mostrar_mano(mano_actual)
+        if not intercambio_realizado:
+            intercambiar_letra = input("Desear cambiar una letra? (responder S=Si o N= No): ")
+            if intercambiar_letra.upper() == 'S' or intercambiar_letra.upper() == 'SI':
+                intercambio_realizado = true
+                letra_a_intercambiar = input("Ingrese la letra a intermbiar: ")
+                print("Intercambiando Letra")
+                mano_actual = intercambiar_mano(mano_actual,letra_a_intercambiar)
+                print("La mano actual es: {}".mano_actual)
+        print("jugando mano actual")
+        if mano_repetida:
+            repetir_mano = input("Desea repetir la mano? (responder S=Si o N= No):")
+            if repetir_mano.upper() == 'S':
+                mano_repetida = true
+                print("Repitiendo mano actual")
+        puntaje_mano = obtener_puntaje_palabra(palabra, TAMANIO_MANO)
+        manos_jugadas += 1
+        manos_por_jugar = cantidad_manos >= nanos_jugadas
+    print("El puntaje final es: ", puntaje_juego)
+
+
+
         
 #
 # Construye las estructuras de datos necesarias para jugar la partida.
@@ -324,5 +401,6 @@ def jugar_partida(lista_palabras):
 # cuando el programa se ejecuta directamente, sin usar la sentencia import.
 #
 if __name__ == '__main__':
+    control_pantalla("limpiar_pantalla","")
     lista_palabras = cargar_palabras()
     jugar_partida(lista_palabras)
