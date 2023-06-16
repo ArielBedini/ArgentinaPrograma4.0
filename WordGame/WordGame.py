@@ -107,7 +107,12 @@ def obtener_puntaje_palabra(palabra, n):
     n: int >= 0
     retorna: int >= 0
     """
-    pass # TO DO... Eliminar esta linea cuando se implemente la función.
+    
+    primera_componente = sum(VALORES_LETRAS[x] for x in palabra.lower())
+    segunda_componente = max(1,(7 * len(palabra) - 3 * (n - len(palabra))))
+
+    return primera_componente * segunda_componente
+
 
 
 def mostrar_mano(mano):
@@ -333,9 +338,7 @@ def jugar_partida(lista_palabras):
     lista_palabras: lista de cadenas en minúsculas
     """
     
-    
-    print("jugar_partida no implementado.") # TO DO... Eliminar esta linea cuando se implemente la función.
-    
+        
     ##! Ciclo del Juego
     ## Inicializar variables de control
     nanos_jugadas = 0
@@ -354,16 +357,19 @@ def jugar_partida(lista_palabras):
     ## Si el número de manos a juagar es 0 se sale del juego!
     while not cantidad_manos_correcta:
         try:
+            print("\n")
             cantidad_manos = int(input(control_pantalla("centrar_texto", "Ingrese el número de manos a jugar (0 para salir): ")))
             cantidad_manos_correcta = cantidad_manos >= 0
             if cantidad_manos < 0:
-                raise NumeroNegativo("Debe ingresar numeros positivos")
+                raise NumeroNegativo("\nDebe ingresar numeros positivos")
             if cantidad_manos == 0:
                 print(".... Saliste de WordGame, .... te esperamos para un nuevo desafío!!")
                 continue
         except ValueError:
-            print("Debe ingresar un número entero")
+            control_pantalla("limpiar_pantalla","")
+            print("\nDebe ingresar un número entero")
         except NumeroNegativo as e:
+            control_pantalla("limpiar_pantalla","")
             print(e)
             continue
 
@@ -371,9 +377,10 @@ def jugar_partida(lista_palabras):
 
     ## Inicio del Ciclo del Juego: "mientras quede manos por jugar"
     while  quedan_manos_por_jugar:
-        print("Jugando mano")
         mano_actual = repartir_mano(TAMANIO_MANO)
+        print("Mano actual:",end=" ")
         mostrar_mano(mano_actual)
+        print("Jugando mano")
         if not intercambio_realizado:
             intercambiar_letra = input("Desear cambiar una letra? (responder S=Si o N= No): ")
             if intercambiar_letra.upper() == 'S' or intercambiar_letra.upper() == 'SI':
@@ -383,14 +390,17 @@ def jugar_partida(lista_palabras):
                 mano_actual = intercambiar_mano(mano_actual,letra_a_intercambiar)
                 print("La mano actual es: {}".mano_actual)
         print("jugando mano actual")
+        palabra = input("Ingrese la mano a junar")
+
         if mano_repetida:
             repetir_mano = input("Desea repetir la mano? (responder S=Si o N= No):")
             if repetir_mano.upper() == 'S':
                 mano_repetida = True
                 print("Repitiendo mano actual")
         #puntaje_manosappend(obtener_puntaje_palabra(palabra, TAMANIO_MANO))
-        manos_jugadas += 1
-        quedan_manos_por_jugar = cantidad_manos >= nanos_jugadas
+
+        nanos_jugadas += 1
+        quedan_manos_por_jugar = cantidad_manos > nanos_jugadas
     print("El puntaje final es: ", puntaje_juego)
 
 
@@ -405,3 +415,4 @@ if __name__ == '__main__':
     control_pantalla("limpiar_pantalla","")
     lista_palabras = cargar_palabras()
     jugar_partida(lista_palabras)
+    print(obtener_puntaje_palabra("Flan",6))
