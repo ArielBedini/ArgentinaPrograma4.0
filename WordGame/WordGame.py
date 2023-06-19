@@ -22,7 +22,7 @@ intercambio = False
 # Codigo de ayuda
 #
 
-ARCHIVO_PALABRAS = "/home/ariel/Programación/Cursos/Python/Argentina Programa 4.0/WordGame/palabras.txt"
+ARCHIVO_PALABRAS = "palabras.txt"
 
 
 
