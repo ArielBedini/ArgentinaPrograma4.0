@@ -21,7 +21,7 @@ VALORES_LETRAS = {
 # Codigo de ayuda
 #
 
-ARCHIVO_PALABRAS = "palabras.txt"
+ARCHIVO_PALABRAS = "/home/ariel/Programación/Cursos/Python/Argentina Programa 4.0/WordGame/palabras.txt"
 
 def limpiar_pantalla():
     pass
@@ -180,8 +180,17 @@ def actualizar_mano(mano, palabra):
     mano: diccionario (string -> int)    
     retorna: diccionario (string -> int)
     """
-    pass # TO DO... Eliminar esta línea cuando se implemente la función.
+    nueva_mano = mano.copy()
+    for letra in palabra.lower():
+        if letra in nueva_mano:
+            if nueva_mano[letra] == 1:
+                del(nueva_mano[letra])
+            else:
+                nueva_mano[letra] -= 1
 
+    return nueva_mano
+
+    
 #
 # Problema #4: Verificar si la palabra es válida.
 #
@@ -196,7 +205,9 @@ def es_palabra_valida(palabra, mano, lista_palabras):
     lista_palabras: lista de cadenas en minúsculas
     Retorna: boolean
     """
-    pass # TO DO... Eliminar esta linea cuando se implemente la función.
+    palabra_con_frecuancias = obtener_diccionario_frecuencias(palabra.lower())
+    return (set(palabra_con_frecuancias.keys()).issubset(set(mano.keys()))) and (all(palabra_con_frecuancias[letra] <= mano[letra] for letra in palabra_con_frecuancias)) and (palabra.lower() in lista_palabras)
+
 
 #
 # Problema #5: Jugar una mano
@@ -342,12 +353,11 @@ def jugar_partida(lista_palabras):
     ##! Ciclo del Juego
     ## Inicializar variables de control
     nanos_jugadas = 0
-    puntaje_manos = []
     puntaje_juego = 0
     cantidad_manos_correcta = False
     quedan_manos_por_jugar = False
     intercambio_realizado = False
-    mano_repetida = False
+    repetir_mano = True
 
     ## Personalizamos el error en el ingreso de la cantidad de patidas a jugar
     class NumeroNegativo(Exception):
@@ -377,27 +387,45 @@ def jugar_partida(lista_palabras):
 
     ## Inicio del Ciclo del Juego: "mientras quede manos por jugar"
     while  quedan_manos_por_jugar:
-        mano_actual = repartir_mano(TAMANIO_MANO)
-        print("Mano actual:",end=" ")
-        mostrar_mano(mano_actual)
-        print("Jugando mano")
-        if not intercambio_realizado:
-            intercambiar_letra = input("Desear cambiar una letra? (responder S=Si o N= No): ")
-            if intercambiar_letra.upper() == 'S' or intercambiar_letra.upper() == 'SI':
-                intercambio_realizado = True
-                letra_a_intercambiar = input("Ingrese la letra a intermbiar: ")
-                print("Intercambiando Letra")
-                mano_actual = intercambiar_mano(mano_actual,letra_a_intercambiar)
-                print("La mano actual es: {}".mano_actual)
-        print("jugando mano actual")
-        palabra = input("Ingrese la mano a junar")
+        puntaje_mano = 0
+        ## Este ciclo se repite si se velve a jugar la mano inicial
+        while repetir_mano:
+            mano_inicial = repartir_mano(TAMANIO_MANO)
+            repetir_mano = False
+            finalizar_mano = False
+            
+            mano_actual = mano_inicial.copy()
+            ## Este ciclo se repite mietras queden letras en la mano o el usuario no finalice la mano
+            while len(mano_actual) > 0 and not finalizar_mano:
+                print("Mano actual:",end=" ")
+                mostrar_mano(mano_actual)
+                tamanio_mano = len(mano_actual)
+                
+                if not intercambio_realizado:
+                    intercambiar_letra = input("Desear cambiar una letra? (responder S=Si o N= No): ")
+                    if intercambiar_letra.upper() == 'S' or intercambiar_letra.upper() == 'SI':
+                        intercambio_realizado = True
+                        letra_a_intercambiar = input("Ingrese la letra a intermbiar: ")
+                        print("Intercambiando Letra")
+                        mano_actual = intercambiar_mano(mano_actual,letra_a_intercambiar)
+                        mostrar_mano(mano_actual)
 
-        if mano_repetida:
-            repetir_mano = input("Desea repetir la mano? (responder S=Si o N= No):")
-            if repetir_mano.upper() == 'S':
-                mano_repetida = True
-                print("Repitiendo mano actual")
-        #puntaje_manosappend(obtener_puntaje_palabra(palabra, TAMANIO_MANO))
+                ## Pedimos al jugador que ingrese una palabra
+                palabra = input("Ingrese una palabra o '!!' para finalizar: ")
+                if palabra == "!!":
+                    finalizar_mano = True
+                    continue
+                if es_palabra_valida(palabra, mano_actual, lista_palabras):
+                    puntaje_palabra = obtener_puntaje_palabra(palabra, tamanio_mano)
+                    puntaje_mano += puntaje_palabra
+                    print("{} resulta en {} puntos. Total {}".format(palabra,puntaje_palabra,puntaje_mano))
+
+                mano_actual = actualizar_mano(mano_actual, palabra)
+
+
+            if not repetir_mano:
+                repetir = input("Desea repetir la mano? (responder S=Si o N= No):")
+                repetir_mano = repetir.upper() == 'S'
 
         nanos_jugadas += 1
         quedan_manos_por_jugar = cantidad_manos > nanos_jugadas
@@ -415,4 +443,5 @@ if __name__ == '__main__':
     control_pantalla("limpiar_pantalla","")
     lista_palabras = cargar_palabras()
     jugar_partida(lista_palabras)
-    print(obtener_puntaje_palabra("Flan",6))
+    print(es_palabra_valida("donde", {'n': 1, 'h': 1, 'o': 1, 'y': 1, 'd': 2, 'w': 1, 'e': 2}, lista_palabras))
+    

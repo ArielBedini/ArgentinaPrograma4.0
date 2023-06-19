@@ -81,7 +81,7 @@ def test_actualizar_mano():
     palabra = "calar"
 
     mano_nueva = WordGame.actualizar_mano(mano_copia, palabra)
-    mano_esperada1 = {}
+    mano_esperada1 = {'l': 1, 'e': 1}
     mano_esperada2 = {'c': 0, 'a': 0, 'l': 1, 'e': 1}
     
     print("test_actualizar_mano('"+ palabra +"', " + str(mano_orig) + ")")
