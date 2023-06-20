@@ -11,7 +11,7 @@ import os
 
 VOCALES = 'aeiou'
 CONSONANTES = 'bcdfghjklmnpqrstvwxyz'
-TAMANIO_MANO = 9
+TAMANIO_MANO = 4
 JUGAR_CON_COMODIN = True
 VALORES_LETRAS = {
     '*' : 0, 'a': 1, 'b': 3, 'c': 3, 'd': 2, 'e': 1, 'f': 4, 'g': 2, 'h': 4, 'i': 1, 'j': 8, 'k': 5, 'l': 1, 'm': 3, 'n': 1, 'ñ': 4, 'o': 1, 'p': 3, 'q': 10, 'r': 1, 's': 1, 't': 1, 'u': 1, 'v': 4, 'w': 4, 'x': 8, 'y': 4, 'z': 10
@@ -161,7 +161,16 @@ def repartir_mano(n):
     """
     
     mano={}
-    cantidad_vocales = int(math.ceil(n / 3))
+
+    ## Agregue un incremento al número de vocales porque al aumentar TAMANIO_MANO no me convence la cantidad de vocales con las que podemos jugar
+    if not (n % 3): ## si es múltimplo de 3
+        inc = 1
+    else:
+        inc = 0
+
+    ## 
+
+    cantidad_vocales = int(math.ceil(n / 3)) + inc
 
     for i in range(cantidad_vocales):
         x = random.choice(VOCALES)
@@ -229,27 +238,9 @@ def es_palabra_valida(palabra, mano, lista_palabras):
 
     
     palabra = palabra.lower() # pasamos la palabra a minúscula para trabajar en minúsculas
-    """
-    # Tomamos la posición de la primer ocurrencia de un asterisco en palabra 
-    posicion_asterisco = palabra.find("*")
-    if posicion_asterisco != -1: # si palabra tiene un asterisco
-        # formams una lista de palabras que se forman reemplazando el ascterisco por cada vocal
-        # si hay mas de un asterisco los restantes se eliminar....
-        palabra = palabra[:posicion_asterisco + 1] + palabra[posicion_asterisco:].replace('*', "")
-        palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
-
-        # palabras = list(palabra[:posicion_asterisco + 1].replace('*', vocal)+palabra[posicion_asterisco:].replace('*', "") for vocal in VOCALES)
-    else:
-        # si la palabra no tiene asterisco igual la guardamos en un listado de palabras que usamos
-        # para verificar las diferentes palbras que se forman reemplazando el asterisco por cada vocal 
-        palabras=[palabra]
     palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
-    for una_palabra in palabras:
-        if set(palabra_frecuencias.keys()).issubset(set(mano.keys())) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias) and (una_palabra in lista_palabras):
-            return True
-    
-    palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
-    if all(letra in mano.keys() for letra in palabra) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
+    # if all(letra in mano.keys() for letra in palabra) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
+    if all(letra in mano.keys() and palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
         palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
         return any(una_palabra in lista_palabras for una_palabra in palabras)
     return False
@@ -267,17 +258,18 @@ def es_palabra_valida(palabra, mano, lista_palabras):
             ## entonces la palabra no es váĺida
             return False 
     ## si llegamos hasta acá la palara es valida, pero si jugamos con comodines tenemos que hacer
-    ## un par de pasas más..
+    ## un par de cosas más..
 
     ## primero creamos una lista con las palabras que se forman reemplazando el asterisco con cada vocal
     palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
     ## lo bueno de esto es que funciona igual si jugamos o no con asteriscos, cualquiera fuera el caso la lista palabras 
-    ## contendrá todas las variantes que se obtiene al reemplazar el asterisco por caad vocal o al menos contendrá 
+    ## contendrá todas las variantes que se obtiene al reemplazar el asterisco por cada vocal o al menos contendrá 
     ## palabra (original) unicamante si no jugamos con asteriscos, ya que la funcion remplace() no encuantra un asterico para reemplazar....
 
     ## luego buscamos cualquier coincidencia de la/s palabra/s dentro de lista_palabras y si existe al menos una,
     ## la primera que encuantre, devuelve True, caso contrario si no encuentra una coincidencia devolverá False
     return any(una_palabra in lista_palabras for una_palabra in palabras)
+    """
 
 
 
