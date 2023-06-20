@@ -11,12 +11,12 @@ import os
 
 VOCALES = 'aeiou'
 CONSONANTES = 'bcdfghjklmnpqrstvwxyz'
-TAMANIO_MANO = 7
+TAMANIO_MANO = 9
 JUGAR_CON_COMODIN = True
 VALORES_LETRAS = {
     '*' : 0, 'a': 1, 'b': 3, 'c': 3, 'd': 2, 'e': 1, 'f': 4, 'g': 2, 'h': 4, 'i': 1, 'j': 8, 'k': 5, 'l': 1, 'm': 3, 'n': 1, 'ñ': 4, 'o': 1, 'p': 3, 'q': 10, 'r': 1, 's': 1, 't': 1, 'u': 1, 'v': 4, 'w': 4, 'x': 8, 'y': 4, 'z': 10
 }
-intercambio = False
+# intercambio = False
 
 # -----------------------------------
 # Codigo de ayuda
@@ -26,22 +26,35 @@ ARCHIVO_PALABRAS = "palabras.txt"
 
 
 
-def control_pantalla(f, txt):
+def control_pantalla(f, txt = ""):
     def limpiar_pantalla():
         if os.name == 'nt':  # Para sistemas Windows
             os.system('cls')
         else:  # Para sistemas Unix/Linux/Mac
             os.system('clear')
+
     def centrar_texto(texto):
         terminal_width = os.get_terminal_size().columns
         espacios = (terminal_width - len(texto)) // 2
         texto_centralizado = " " * espacios + texto
         return texto_centralizado
+    
+    def cartel(texto):
+        ancho_texto = len(texto)
+        ln2 = centrar_texto("*"*(ancho_texto+4))+"\n"
+        ln1 = centrar_texto("*"+" "*(ancho_texto+1)+" *")+"\n"
+        ln0 = centrar_texto("*"+" "+texto+" *")+"\n"
+        return ln2+ln1+ln0+ln1+ln2
+
+
+        
 
     if f == "limpiar_pantalla":
         limpiar_pantalla()
     if f == "centrar_texto":
         return centrar_texto(txt)
+    if f == "cartel":
+        return cartel(txt)
 
 
 def cargar_palabras():
@@ -214,8 +227,9 @@ def es_palabra_valida(palabra, mano, lista_palabras):
     Retorna: boolean
     """
 
-
-    palabra = palabra.lower()
+    
+    palabra = palabra.lower() # pasamos la palabra a minúscula para trabajar en minúsculas
+    """
     # Tomamos la posición de la primer ocurrencia de un asterisco en palabra 
     posicion_asterisco = palabra.find("*")
     if posicion_asterisco != -1: # si palabra tiene un asterisco
@@ -229,14 +243,44 @@ def es_palabra_valida(palabra, mano, lista_palabras):
         # si la palabra no tiene asterisco igual la guardamos en un listado de palabras que usamos
         # para verificar las diferentes palbras que se forman reemplazando el asterisco por cada vocal 
         palabras=[palabra]
-    print(palabras)
-    palabra_con_frecuancias = obtener_diccionario_frecuencias(palabra)
+    palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
     for una_palabra in palabras:
-        print(palabra_con_frecuancias)
-        if set(palabra_con_frecuancias.keys()).issubset(set(mano.keys())) and all(palabra_con_frecuancias[letra] <= mano[letra] for letra in palabra_con_frecuancias) and (una_palabra in lista_palabras):
+        if set(palabra_frecuencias.keys()).issubset(set(mano.keys())) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias) and (una_palabra in lista_palabras):
             return True
     
+    palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
+    if all(letra in mano.keys() for letra in palabra) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
+        palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
+        return any(una_palabra in lista_palabras for una_palabra in palabras)
     return False
+    """
+    palabra = palabra.lower() # pasamos la palabra a minúsculas
+    ## condición: cada letra de la palabra que ingreso el jugardor existe en la mano actual ???
+    ## pero cuidado porque la condición anterior no detecta palabra inválida si palabra="holaaaa" y mano=['a','h','o','l']
+    ## para este caso tenemos que verificar la cantidad de veces que tenemos cada letra en palabra y 
+    ## compararla con la mano, para ello usamos la función que ya viene definida: "obtener_diccionario_frecuencias"
+    palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
+    for letra in palabra_frecuencias:
+        if not(letra in mano.keys() and palabra_frecuencias[letra] <= mano[letra]):
+            ## si existe al menos una letra de la palabra que no este en la mano o 
+            ## si el número de veces que aparece la letra en palabra es mayor al de la mano
+            ## entonces la palabra no es váĺida
+            return False 
+    ## si llegamos hasta acá la palara es valida, pero si jugamos con comodines tenemos que hacer
+    ## un par de pasas más..
+
+    ## primero creamos una lista con las palabras que se forman reemplazando el asterisco con cada vocal
+    palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
+    ## lo bueno de esto es que funciona igual si jugamos o no con asteriscos, cualquiera fuera el caso la lista palabras 
+    ## contendrá todas las variantes que se obtiene al reemplazar el asterisco por caad vocal o al menos contendrá 
+    ## palabra (original) unicamante si no jugamos con asteriscos, ya que la funcion remplace() no encuantra un asterico para reemplazar....
+
+    ## luego buscamos cualquier coincidencia de la/s palabra/s dentro de lista_palabras y si existe al menos una,
+    ## la primera que encuantre, devuelve True, caso contrario si no encuentra una coincidencia devolverá False
+    return any(una_palabra in lista_palabras for una_palabra in palabras)
+
+
+
 
 
 
@@ -324,15 +368,16 @@ def jugar_mano(mano, lista_palabras):
         
         if not intercambiar_letra:
             intercambiar_letra = True
-            intercambiar_letra = input("Desear cambiar una letra? (responder S=Si o N= No): ")
-            if intercambiar_letra.upper() == 'S' or intercambiar_letra.upper() == 'SI':
+            print ("\n")
+            intercambiar = input(control_pantalla("centrar_texto",".....Desear cambiar una letra? [S=Si/N=No]: ")).replace(" ", "")
+            if intercambiar.upper() == 'S' or intercambiar.upper() == 'SI':
                 letra_a_intercambiar = input("Ingrese la letra a intermbiar: ")
                 mano = intercambiar_mano(mano,letra_a_intercambiar)
                 print("Mano actual:",end=" ")
                 mostrar_mano(mano)
 
         ## Pedimos al jugador que ingrese una palabra
-        palabra = input("Ingrese una palabra o '!!' para finalizar: ").replace(" ", "")
+        palabra = input(control_pantalla("centrar_texto","......Ingrese una palabra o '!!' para finalizar: ")).replace(" ", "")
         if palabra == "!!":
             finalizar_mano = True
             continue
@@ -379,7 +424,7 @@ def intercambiar_mano(mano, letra):
     """
     letra = letra.lower().replace(" ", "")
     if JUGAR_CON_COMODIN and letra == "*":
-        print ("No puede elegir el comodín para reemplazar")
+        print ("\nEl comodín no se puede intercambiar!!\n")
         return mano
     letra_repetida = True
     if letra in mano.keys():
@@ -392,7 +437,7 @@ def intercambiar_mano(mano, letra):
         else:
             del(mano[letra])
     else:
-        print("LA letra ingresada no está en la mano")
+        print("\nLa letra ingresada no está en la mano!!\n")
     
     return mano
 
@@ -446,15 +491,16 @@ def jugar_partida(lista_palabras):
 
     ## Iniciamos el ciclo de control de ingreso de un valor entero positvo por parte del usuario
     ## Si el número de manos a juagar es 0 se sale del juego!
+    print("\n")
     while not numero_de_manos_correcto:
+        print(control_pantalla("cartel", "¡¡  B i e n v e n i d o   a   W O R D  G A M E  !!"))
         try:
-            print("\n")
             cantidad_manos = int(input(control_pantalla("centrar_texto", "Ingrese el número de manos a jugar (0 para salir): ")))
             numero_de_manos_correcto = cantidad_manos >= 0
             if cantidad_manos < 0:
                 raise NumeroNegativo("\nDebe ingresar numeros positivos")
             if cantidad_manos == 0:
-                print(".... Saliste de WordGame, .... te esperamos para un nuevo desafío!!")
+                print("\n"+control_pantalla("centrar_texto",".... Saliste de WordGame, .... te esperamos para un nuevo desafío!!")+"\n")
                 continue
         except ValueError:
             control_pantalla("limpiar_pantalla","")
@@ -468,7 +514,8 @@ def jugar_partida(lista_palabras):
 
     ## Inicio del Ciclo del Juego: "mientras quede manos por jugar"
     while  quedan_manos_por_jugar:
-        puntaje_mano = []
+        control_pantalla("limpiar_pantalla")
+        puntaje_mano = [0]
         ## Este ciclo se repite si se velve a jugar la mano inicial
         mano = repartir_mano(TAMANIO_MANO)
         while repetir_mano:
@@ -476,7 +523,9 @@ def jugar_partida(lista_palabras):
             print("Puntaje final de la mano: ",puntaje_mano[len(puntaje_mano)-1])
             if preguntar_repetir_mano:
                 preguntar_repetir_mano = False
-                repetir = input("Desea repetir la mano? (responder S=Si o N= No):")
+                print("\n")
+                repetir = input(control_pantalla("centrar_texto","......Desea repetir la mano? [S=Si/N=No]: "))
+                print("\n")
                 repetir_mano = repetir.upper() == 'S' or repetir.upper() == 'SI'
             else:
                 repetir_mano = False
@@ -484,7 +533,9 @@ def jugar_partida(lista_palabras):
         puntaje_juego += max(puntaje_mano)
         nanos_jugadas += 1
         quedan_manos_por_jugar = cantidad_manos > nanos_jugadas
-    print("El puntaje final del juego obtenido en {} mano/s es: {}".format(cantidad_manos, puntaje_juego))
+    
+    if cantidad_manos > 0:
+        print("\nEl puntaje final del juego obtenido en {} mano/s es: {}".format(cantidad_manos, puntaje_juego))
 
 
 
@@ -495,7 +546,7 @@ def jugar_partida(lista_palabras):
 # cuando el programa se ejecuta directamente, sin usar la sentencia import.
 #
 if __name__ == '__main__':
-    control_pantalla("limpiar_pantalla","")
+    control_pantalla("limpiar_pantalla")
     lista_palabras = cargar_palabras()
     jugar_partida(lista_palabras)
     
