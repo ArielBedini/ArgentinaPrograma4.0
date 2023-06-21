@@ -27,7 +27,17 @@ ARCHIVO_PALABRAS = "palabras.txt"
 
 
 
-def control_pantalla(f, txt = ""):
+def control_pantalla(f, texto = ""):
+    """
+    Esta función controla la forma en que se presentan mensajes de texto en pantalla de consola, debiante
+    la implementación de tres funciones internas.
+    Recibe dos argumentos, el primero es el nombre de la función interna a ejecutar y el segundo (opcional)
+    es el mensaje de texto que queremos presentar.
+    Las funciones internar que podemos ejecutar pasando pasando su nombre como primer parámentro son:
+        - limpiar_pantalla()
+        - centrar_texto(texto)
+        - mostrar_cartel(texto)
+    """
     def limpiar_pantalla():
         if os.name == 'nt':  # Para sistemas Windows
             os.system('cls')
@@ -40,20 +50,21 @@ def control_pantalla(f, txt = ""):
         texto_centralizado = " " * espacios + texto
         return texto_centralizado
     
-    def cartel(texto):
+    def mostrar_cartel(texto):
         ancho_texto = len(texto)
         ln2 = centrar_texto("*"*(ancho_texto+4))+"\n"
         ln1 = centrar_texto("*"+" "*(ancho_texto+1)+" *")+"\n"
         ln0 = centrar_texto("*"+" "+texto+" *")+"\n"
         return ln2+ln1+ln0+ln1+ln2
 
-
+    # verifica que el primer parametro 'f' coincide con uno de los nombres de la funciones internas
+    # y procede a a la función correspondiente
     if f == "limpiar_pantalla":
         limpiar_pantalla()
     if f == "centrar_texto":
-        return centrar_texto(txt)
-    if f == "cartel":
-        return cartel(txt)
+        return centrar_texto(texto)
+    if f == "mostrar_cartel":
+        return mostrar_cartel(texto)
 
 
 def cargar_palabras():
@@ -364,34 +375,38 @@ def jugar_mano(mano, lista_palabras, repetir_mano):
     puntaje_mano = 0
     intercambiar_letra = False
 
+    ## creamos una copia de la mano con la cual haremos los cambios
+    mano_a_jugar = mano.copy()
+
     ## Este ciclo se repite mietras queden letras en la mano o el usuario no finalice la mano
-    while len(mano) > 0:
+    while len(mano_a_jugar) > 0:
         print("Mano actual:",end=" ")
-        mostrar_mano(mano)
+        mostrar_mano(mano_a_jugar)
         
         if not intercambiar_letra and not repetir_mano:
             intercambiar_letra = True
             print ("\n")
-            intercambiar = input(control_pantalla("centrar_texto",".....Desear cambiar una letra? [S=Si/N=No]: ")).replace(" ", "")
+            intercambiar = input(control_pantalla("centrar_texto","-> Desear cambiar una letra? [S=Si/N=No]: ")).replace(" ", "")
+            print("\n")
             if intercambiar.upper() == 'S' or intercambiar.upper() == 'SI':
-                letra_a_intercambiar = input("Ingrese la letra a intermbiar: ")
-                mano = intercambiar_mano(mano,letra_a_intercambiar)
+                letra_a_intercambiar = input(control_pantalla("centrar_texto","-> Ingrese la letra a intermbiar: "))
+                mano_a_jugar = intercambiar_mano(mano_a_jugar,letra_a_intercambiar)
                 print("Mano actual:",end=" ")
-                mostrar_mano(mano)
+                mostrar_mano(mano_a_jugar)
 
         ## Pedimos al jugador que ingrese una palabra
-        palabra = input(control_pantalla("centrar_texto","......Ingrese una palabra o '!!' para finalizar: "))
+        palabra = input(control_pantalla("centrar_texto","-> Ingrese una palabra o '!!' para finalizar: "))
         palabra =  palabra.lower().replace(" " , "")
         if palabra == "!!":
             break
-        if es_palabra_valida(palabra, mano, lista_palabras):
-            puntaje_palabra = obtener_puntaje_palabra(palabra, len(mano))
+        if es_palabra_valida(palabra, mano_a_jugar, lista_palabras):
+            puntaje_palabra = obtener_puntaje_palabra(palabra, len(mano_a_jugar))
             puntaje_mano += puntaje_palabra
             print("{} resulta en {} puntos. Total {}".format(palabra,puntaje_palabra,puntaje_mano))
         else:
-            print("{} no es una palabra válida".format(palabra))
+            print("'{}' no es una palabra válida".format(palabra))
 
-        mano = actualizar_mano(mano, palabra)
+        mano_a_jugar = actualizar_mano(mano_a_jugar, palabra)
     
     return puntaje_mano
 
@@ -503,14 +518,14 @@ def jugar_partida(lista_palabras):
     ## Si el número de manos a juagar es 0 se sale del juego!
     print("\n")
     while not numero_de_manos_correcto:
-        print(control_pantalla("cartel", "¡¡  B i e n v e n i d o   a   W O R D  G A M E  !!"))
+        print(control_pantalla("mostrar_cartel", "¡¡  B i e n v e n i d o   a   W O R D  G A M E  !!"))
         try:
-            cantidad_manos = int(input(control_pantalla("centrar_texto", "Ingrese el número de manos a jugar (0 para salir): ")))
+            cantidad_manos = int(input(control_pantalla("centrar_texto", "-> Ingrese el número de manos a jugar (0 para salir): ")))
             numero_de_manos_correcto = cantidad_manos >= 0
             if cantidad_manos < 0:
                 raise NumeroNegativo("\nDebe ingresar numeros positivos")
             if cantidad_manos == 0:
-                print("\n"+control_pantalla("centrar_texto",".... Saliste de WordGame, .... te esperamos para un nuevo desafío!!")+"\n")
+                print("\n"+control_pantalla("centrar_texto","¡¡ Saliste de WordGame, ... te esperamos pronto para un nuevo desafío !!")+"\n")
                 continue
         except ValueError:
             control_pantalla("limpiar_pantalla","")
@@ -533,13 +548,13 @@ def jugar_partida(lista_palabras):
         ## Este ciclo se repite unicamante si se velve a jugar la mano
         while True:
             puntaje_mano.append(jugar_mano(mano, lista_palabras, repetir_mano))
-            txtrepetir = ""
-            if repetir_mano:
-                txtrepetir = "repetida"
-            print("Puntaje final de la mano Nro. {} {}: {}".format(manos_jugadas+1,txtrepetir,puntaje_mano[len(puntaje_mano)-1]))
+            # txtrepetir = ""
+            # if repetir_mano:
+            #     txtrepetir = "repetida"
+            # print("Puntaje final de la mano Nro. {} {}: {}".format(manos_jugadas+1,txtrepetir,puntaje_mano[len(puntaje_mano)-1]))
             if not repetir_mano:
                 print("\n")
-                repetir = input(control_pantalla("centrar_texto","......Desea repetir la mano? [S=Si/N=No]: "))
+                repetir = input(control_pantalla("centrar_texto","... Desea repetir la mano? [S=Si/N=No]: "))
                 print("\n")
                 repetir_mano = repetir.upper() == 'S' or repetir.upper() == 'SI'
                 if not repetir_mano:
@@ -547,15 +562,19 @@ def jugar_partida(lista_palabras):
             else:
                 break
 
-        if repetir_mano:
-            print("El puntaje final de la mano Nro. {} es: {}".format(manos_jugadas+1, max(puntaje_mano)))
-
+        # if repetir_mano:
+        #     print("Puntaje final de la mano Nro. {} es: {}\n".format(manos_jugadas+1, max(puntaje_mano)))
+            
         puntaje_juego += max(puntaje_mano)
         manos_jugadas += 1
         quedan_manos_por_jugar = cantidad_manos > manos_jugadas
     
     if cantidad_manos > 0:
-        print("\nEl puntaje final del juego obtenido en {} mano/s es: {}".format(cantidad_manos, puntaje_juego))
+        txt_titulo = "Puntaje final obtenido en {} mano/s: {}".format(cantidad_manos, puntaje_juego)
+        print("\n")
+        print(control_pantalla("mostrar_cartel",txt_titulo))
+        print("\n")
+
 
 
 
