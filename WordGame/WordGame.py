@@ -385,9 +385,9 @@ def jugar_mano(mano, lista_palabras, repetir_mano):
         
         if not intercambiar_letra and not repetir_mano:
             intercambiar_letra = True
-            print ("\n")
+            print ()
             intercambiar = input(control_pantalla("centrar_texto","-> Desear cambiar una letra? [S=Si/N=No]: ")).replace(" ", "")
-            print("\n")
+            print()
             if intercambiar.upper() == 'S' or intercambiar.upper() == 'SI':
                 letra_a_intercambiar = input(control_pantalla("centrar_texto","-> Ingrese la letra a intermbiar: "))
                 mano_a_jugar = intercambiar_mano(mano_a_jugar,letra_a_intercambiar)
@@ -516,7 +516,7 @@ def jugar_partida(lista_palabras):
 
     ## Iniciamos el ciclo de control de ingreso de un valor entero positvo por parte del usuario
     ## Si el número de manos a juagar es 0 se sale del juego!
-    print("\n")
+    print()
     while not numero_de_manos_correcto:
         print(control_pantalla("mostrar_cartel", "¡¡  B i e n v e n i d o   a   W O R D  G A M E  !!"))
         try:
@@ -540,10 +540,10 @@ def jugar_partida(lista_palabras):
     ## Inicio del Ciclo del Juego: "mientras quede manos por jugar"
     while quedan_manos_por_jugar:
         puntaje_mano = [0]
-        print("\n")
+        print()
         txt_titulo = "*** Jugando Mano Nro.: " + str(manos_jugadas+1) + " ***"
         print(control_pantalla("centrar_texto",txt_titulo))
-        print("\n")
+        print()
         mano = repartir_mano(TAMANIO_MANO)
         ## Este ciclo se repite unicamante si se velve a jugar la mano
         while True:
@@ -553,9 +553,9 @@ def jugar_partida(lista_palabras):
             #     txtrepetir = "repetida"
             # print("Puntaje final de la mano Nro. {} {}: {}".format(manos_jugadas+1,txtrepetir,puntaje_mano[len(puntaje_mano)-1]))
             if not repetir_mano:
-                print("\n")
+                print()
                 repetir = input(control_pantalla("centrar_texto","... Desea repetir la mano? [S=Si/N=No]: "))
-                print("\n")
+                print()
                 repetir_mano = repetir.upper() == 'S' or repetir.upper() == 'SI'
                 if not repetir_mano:
                     break
@@ -571,9 +571,9 @@ def jugar_partida(lista_palabras):
     
     if cantidad_manos > 0:
         txt_titulo = "Puntaje final obtenido en {} mano/s: {}".format(cantidad_manos, puntaje_juego)
-        print("\n")
+        print()
         print(control_pantalla("mostrar_cartel",txt_titulo))
-        print("\n")
+        print()
 
 
 
