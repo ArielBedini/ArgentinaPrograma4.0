@@ -11,13 +11,11 @@ import os
 
 VOCALES = 'aeiou'
 CONSONANTES = 'bcdfghjklmnpqrstvwxyz'
-TAMANIO_MANO = 7
+TAMANIO_MANO = 4
 JUGAR_CON_COMODIN = True
 VALORES_LETRAS = {
     '*' : 0, 'a': 1, 'b': 3, 'c': 3, 'd': 2, 'e': 1, 'f': 4, 'g': 2, 'h': 4, 'i': 1, 'j': 8, 'k': 5, 'l': 1, 'm': 3, 'n': 1, 'ñ': 4, 'o': 1, 'p': 3, 'q': 10, 'r': 1, 's': 1, 't': 1, 'u': 1, 'v': 4, 'w': 4, 'x': 8, 'y': 4, 'z': 10
 }
-
-
 
 # -----------------------------------
 # Codigo de ayuda
@@ -26,110 +24,103 @@ VALORES_LETRAS = {
 ARCHIVO_PALABRAS = "palabras.txt"
 
 
-
-def control_pantalla(f, txt = ""):
-    def limpiar_pantalla():
-        if os.name == 'nt':  # Para sistemas Windows
-            os.system('cls')
-        else:  # Para sistemas Unix/Linux/Mac
-            os.system('clear')
-
-    def centrar_texto(texto):
-        terminal_width = os.get_terminal_size().columns
-        espacios = (terminal_width - len(texto)) // 2
-        texto_centralizado = " " * espacios + texto
-        return texto_centralizado
+class Palabras:
     
-    def cartel(texto):
-        ancho_texto = len(texto)
-        ln2 = centrar_texto("*"*(ancho_texto+4))+"\n"
-        ln1 = centrar_texto("*"+" "*(ancho_texto+1)+" *")+"\n"
-        ln0 = centrar_texto("*"+" "+texto+" *")+"\n"
-        return ln2+ln1+ln0+ln1+ln2
+    def cargar_palabras(self, archivo_palabras):
+        """
+        Retorna una lista de palabras válidas, compuestas por letras en minúscula.
+
+        Dependiendo del tamaño de la lista de palabras, esta función puede tomarse su tiempo para finalizar.
+        """
+
+        print("Cargando lista de palabras desde el archivo...")
+        # inFile: Archivo
+        inFile = open(archivo_palabras, 'r')
+        # palabras: lista de cadenas
+        palabras = []
+        for palabra in inFile:
+            palabras.append(palabra.strip().lower())
+        print("  ", len(palabras), "palabras cargadas.")
+        return palabras
 
 
-    if f == "limpiar_pantalla":
-        limpiar_pantalla()
-    if f == "centrar_texto":
-        return centrar_texto(txt)
-    if f == "cartel":
-        return cartel(txt)
-
-
-def cargar_palabras():
-    """
-    Retorna una lista de palabras válidas, compuestas por letras en minúscula.
+    def es_palabra_valida(self, palabra, mano, lista_palabras):
+        """
+        Devuelve True si la palabra está en lista_palabras y está compuesta
+        completamente por letras en la mano. Sino, devuelve False.
+        No se debe modificar ni mano ni lista_palabras.
     
-    Dependiendo del tamaño de la lista de palabras, esta función puede tomarse su tiempo para finalizar.
-    """
-    
-    print("Cargando lista de palabras desde el archivo...")
-    # inFile: Archivo
-    inFile = open(ARCHIVO_PALABRAS, 'r')
-    # palabras: lista de cadenas
-    palabras = []
-    for palabra in inFile:
-        palabras.append(palabra.strip().lower())
-    print("  ", len(palabras), "palabras cargadas.")
-    return palabras
+        palabra: string
+        mano: diccionario (string -> int)
+        lista_palabras: lista de cadenas en minúsculas
+        Retorna: boolean
+        """
 
-def obtener_diccionario_frecuencias(secuencia):
-    """
-    Genera un diccionario donde las claves son los elementos de la secuencia
-    y los valores son enteros, que indican la cantidad de veces que ese
-    elemento está repetido en la secuencia.
+        ## Paa trabajar con 'palabra'haremos lo siguiente en todas las funcines:s
+        ## pasaremos palabra a minsculas  y eliminaremos los espacios anteriores y 
+        ## posterioes a la palabra y los que pueda haber entre letras
+        palabra = palabra.lower().replace(" ","")
 
-    secuencia: cadena o lista
-    return: diccionario {tipo_elemento -> int}
-    """
+        palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
+        # if all(letra in mano.keys() for letra in palabra) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
+        if all(letra in mano.keys() and palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
+            palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
+            return any(una_palabra in lista_palabras for una_palabra in palabras)
+        return False
+
+    def obtener_puntaje_palabra(self, palabra, n):
+        """
+        Obtiene el puntaje de una palabra. Asume que la palabra es una palabra válida.
+
+        Podemos asumir que la palabra siempre será una cadena de letras 
+        o la cadena vacía (""). No se puede asumir que solo contendrá letras en
+        minúsculas, así que deberemos resolver también con palabras con letras en
+        mayúscula y minúscula.
+
+    	El puntaje de una palabra es el producto de dos componentes:
+
+    	Primer componente: la suma de los puntos de las letras en la palabra.
+        Segundo componente: 1 o la fórmula 
+            [7 * longitud_palabra - 3 * (n - longitud_palabra)], el valor que 
+        sea más grande, donde longitud_palabra es la cantidad de letras usadas 
+        en la palabra y n es la cantidad de letras disponibles en la mano actual.
+
+        Al igual que en Scrabble, cada letra tiene un puntaje.
+
+        palabra: cadena
+        n: int >= 0
+        retorna: int >= 0
+        """
+        ## Paa trabajar con 'palabra'haremos lo siguiente en todas las funcines:
+        ## pasaremos palabra a minsculas  y eliminaremos los espacios anteriores y 
+        ## posterioes a la palabra y los que pueda haber entre letras
+        palabra = palabra.lower().replace(" ","")
+
+        primera_componente = sum(VALORES_LETRAS[x] for x in palabra)
+        segunda_componente = max(1,(7 * len(palabra) - 3 * (n - len(palabra))))
+
+        return primera_componente * segunda_componente
+
+
+    def obtener_diccionario_frecuencias(secuencia):
+        """
+        Genera un diccionario donde las claves son los elementos de la secuencia
+        y los valores son enteros, que indican la cantidad de veces que ese
+        elemento está repetido en la secuencia.
     
-    # frecuencias: diccionario
-    frec = {}
-    for x in secuencia:
-        frec[x] = frec.get(x,0) + 1
-    return frec
+        secuencia: cadena o lista
+        return: diccionario {tipo_elemento -> int}
+        """
+        
+        # frecuencias: diccionario
+        frec = {}
+        for x in secuencia:
+            frec[x] = frec.get(x,0) + 1
+        return frec
+
+
+
 	
-#
-# (fin Codigo de ayuda)
-# -----------------------------------
-
-#
-# Problema #2: Puntuar una palabra
-#
-def obtener_puntaje_palabra(palabra, n):
-    """
-    Obtiene el puntaje de una palabra. Asume que la palabra es una palabra válida.
-
-    Podemos asumir que la palabra siempre será una cadena de letras 
-    o la cadena vacía (""). No se puede asumir que solo contendrá letras en
-    minúsculas, así que deberemos resolver también con palabras con letras en
-    mayúscula y minúscula.
-    
-	El puntaje de una palabra es el producto de dos componentes:
-
-	Primer componente: la suma de los puntos de las letras en la palabra.
-    Segundo componente: 1 o la fórmula 
-        [7 * longitud_palabra - 3 * (n - longitud_palabra)], el valor que 
-    sea más grande, donde longitud_palabra es la cantidad de letras usadas 
-    en la palabra y n es la cantidad de letras disponibles en la mano actual.
-
-    Al igual que en Scrabble, cada letra tiene un puntaje.
-
-    palabra: cadena
-    n: int >= 0
-    retorna: int >= 0
-    """
-    ## Paa trabajar con 'palabra'haremos lo siguiente en todas las funcines:
-    ## pasaremos palabra a minsculas  y eliminaremos los espacios anteriores y 
-    ## posterioes a la palabra y los que pueda haber entre letras
-    palabra = palabra.lower().replace(" ","")
-
-    primera_componente = sum(VALORES_LETRAS[x] for x in palabra)
-    segunda_componente = max(1,(7 * len(palabra) - 3 * (n - len(palabra))))
-
-    return primera_componente * segunda_componente
-
-
 
 def mostrar_mano(mano):
     """
@@ -230,62 +221,6 @@ def actualizar_mano(mano, palabra):
     return nueva_mano
 
     
-#
-# Problema #4: Verificar si la palabra es válida.
-#
-def es_palabra_valida(palabra, mano, lista_palabras):
-    """
-    Devuelve True si la palabra está en lista_palabras y está compuesta
-    completamente por letras en la mano. Sino, devuelve False.
-    No se debe modificar ni mano ni lista_palabras.
-   
-    palabra: string
-    mano: diccionario (string -> int)
-    lista_palabras: lista de cadenas en minúsculas
-    Retorna: boolean
-    """
-    
-    ## Paa trabajar con 'palabra'haremos lo siguiente en todas las funcines:s
-    ## pasaremos palabra a minsculas  y eliminaremos los espacios anteriores y 
-    ## posterioes a la palabra y los que pueda haber entre letras
-    palabra = palabra.lower().replace(" ","")
-    
-    palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
-    # if all(letra in mano.keys() for letra in palabra) and all(palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
-    if all(letra in mano.keys() and palabra_frecuencias[letra] <= mano[letra] for letra in palabra_frecuencias):
-        palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
-        return any(una_palabra in lista_palabras for una_palabra in palabras)
-    return False
-    """
-    palabra = palabra.lower() # pasamos la palabra a minúsculas
-    ## condición: cada letra de la palabra que ingreso el jugardor existe en la mano actual ???
-    ## pero cuidado porque la condición anterior no detecta palabra inválida si palabra="holaaaa" y mano=['a','h','o','l']
-    ## para este caso tenemos que verificar la cantidad de veces que tenemos cada letra en palabra y 
-    ## compararla con la mano, para ello usamos la función que ya viene definida: "obtener_diccionario_frecuencias"
-    palabra_frecuencias = obtener_diccionario_frecuencias(palabra)
-    for letra in palabra_frecuencias:
-        if not(letra in mano.keys() and palabra_frecuencias[letra] <= mano[letra]):
-            ## si existe al menos una letra de la palabra que no este en la mano o 
-            ## si el número de veces que aparece la letra en palabra es mayor al de la mano
-            ## entonces la palabra no es váĺida
-            return False 
-    ## si llegamos hasta acá la palara es valida, pero si jugamos con comodines tenemos que hacer
-    ## un par de cosas más..
-
-    ## primero creamos una lista con las palabras que se forman reemplazando el asterisco con cada vocal
-    palabras = list(palabra.replace('*', vocal) for vocal in VOCALES)
-    ## lo bueno de esto es que funciona igual si jugamos o no con asteriscos, cualquiera fuera el caso la lista palabras 
-    ## contendrá todas las variantes que se obtiene al reemplazar el asterisco por cada vocal o al menos contendrá 
-    ## palabra (original) unicamante si no jugamos con asteriscos, ya que la funcion remplace() no encuantra un asterico para reemplazar....
-
-    ## luego buscamos cualquier coincidencia de la/s palabra/s dentro de lista_palabras y si existe al menos una,
-    ## la primera que encuantre, devuelve True, caso contrario si no encuentra una coincidencia devolverá False
-    return any(una_palabra in lista_palabras for una_palabra in palabras)
-    """
-
-
-
-
 
 
 #
@@ -302,7 +237,7 @@ def calcular_longitud_mano(mano):
 
 
 
-def jugar_mano(mano, lista_palabras, repetir_mano):
+def jugar_mano(mano, lista_palabras):
 
     """
     Permite que un usuario juegue una mano, con las siguientes consideraciones:
@@ -361,15 +296,16 @@ def jugar_mano(mano, lista_palabras, repetir_mano):
     # se le muestra el puntaje final de la mano.
 
     # Retorna el puntaje final como resultado de la función.
-    puntaje_mano = 0
+    finalizar_mano = False
     intercambiar_letra = False
+    puntaje_mano = 0
 
     ## Este ciclo se repite mietras queden letras en la mano o el usuario no finalice la mano
-    while len(mano) > 0:
+    while len(mano) > 0 and not finalizar_mano:
         print("Mano actual:",end=" ")
         mostrar_mano(mano)
         
-        if not intercambiar_letra and not repetir_mano:
+        if not intercambiar_letra:
             intercambiar_letra = True
             print ("\n")
             intercambiar = input(control_pantalla("centrar_texto",".....Desear cambiar una letra? [S=Si/N=No]: ")).replace(" ", "")
@@ -380,10 +316,11 @@ def jugar_mano(mano, lista_palabras, repetir_mano):
                 mostrar_mano(mano)
 
         ## Pedimos al jugador que ingrese una palabra
-        palabra = input(control_pantalla("centrar_texto","......Ingrese una palabra o '!!' para finalizar: "))
+        palabra = input(control_pantalla("centrar_texto","......Ingrese una 0palabra o '!!' para finalizar: "))
         palabra =  palabra.lower().replace(" " , "")
         if palabra == "!!":
-            break
+            finalizar_mano = True
+            continue
         if es_palabra_valida(palabra, mano, lista_palabras):
             puntaje_palabra = obtener_puntaje_palabra(palabra, len(mano))
             puntaje_mano += puntaje_palabra
@@ -487,12 +424,13 @@ def jugar_partida(lista_palabras):
         
     ##! Ciclo del Juego
     ## Inicializar variables de control
-    manos_jugadas = 0
+    nanos_jugadas = 0
     puntaje_juego = 0
     numero_de_manos_correcto = False
     quedan_manos_por_jugar = False
-    repetir_mano = False
-
+    repetir_mano = True
+    preguntar_repetir_mano = True
+    una_vez_por_partida = True
 
 
     ## Personalizamos el error en el ingreso de la cantidad de patidas a jugar
@@ -523,41 +461,52 @@ def jugar_partida(lista_palabras):
     quedan_manos_por_jugar = cantidad_manos != 0
 
     ## Inicio del Ciclo del Juego: "mientras quede manos por jugar"
-    while quedan_manos_por_jugar:
+    while  quedan_manos_por_jugar:
+        control_pantalla("limpiar_pantalla")
         puntaje_mano = [0]
-        print("\n")
-        txt_titulo = "*** Jugando Mano Nro.: " + str(manos_jugadas+1) + " ***"
-        print(control_pantalla("centrar_texto",txt_titulo))
-        print("\n")
+        ## Este ciclo se repite si se velve a jugar la mano inicial
         mano = repartir_mano(TAMANIO_MANO)
-        ## Este ciclo se repite unicamante si se velve a jugar la mano
-        while True:
-            puntaje_mano.append(jugar_mano(mano, lista_palabras, repetir_mano))
-            txtrepetir = ""
-            if repetir_mano:
-                txtrepetir = "repetida"
-            print("Puntaje final de la mano Nro. {} {}: {}".format(manos_jugadas+1,txtrepetir,puntaje_mano[len(puntaje_mano)-1]))
-            if not repetir_mano:
+        while repetir_mano:
+            puntaje_mano.append(jugar_mano(mano, lista_palabras))
+            print("Puntaje final de la mano: ",puntaje_mano[len(puntaje_mano)-1])
+            if preguntar_repetir_mano:
+                preguntar_repetir_mano = False
                 print("\n")
                 repetir = input(control_pantalla("centrar_texto","......Desea repetir la mano? [S=Si/N=No]: "))
                 print("\n")
                 repetir_mano = repetir.upper() == 'S' or repetir.upper() == 'SI'
-                if not repetir_mano:
-                    break
             else:
-                break
-
-        if repetir_mano:
-            print("El puntaje final de la mano Nro. {} es: {}".format(manos_jugadas+1, max(puntaje_mano)))
+                repetir_mano = False
 
         puntaje_juego += max(puntaje_mano)
-        manos_jugadas += 1
-        quedan_manos_por_jugar = cantidad_manos > manos_jugadas
+        nanos_jugadas += 1
+        quedan_manos_por_jugar = cantidad_manos > nanos_jugadas
     
     if cantidad_manos > 0:
         print("\nEl puntaje final del juego obtenido en {} mano/s es: {}".format(cantidad_manos, puntaje_juego))
 
 
+class control_pantalla:
+    def __init__ (self):
+        self.os = os.name
+    def limpiar_pantalla(self):
+        if self.os == 'nt':  # Para sistemas Windows
+            os.system('cls')
+        else:  # Para sistemas Unix/Linux/Mac
+            os.system('clear')
+
+    def centrar_texto(self,texto = ""):
+        terminal_width = os.get_terminal_size().columns
+        espacios = (terminal_width - len(texto)) // 2
+        texto_centralizado = " " * espacios + texto
+        return texto_centralizado
+    
+    def cartel(self, texto=""):
+        ancho_texto = len(texto)
+        ln2 = centrar_texto("*"*(ancho_texto+4))+"\n"
+        ln1 = centrar_texto("*"+" "*(ancho_texto+1)+" *")+"\n"
+        ln0 = centrar_texto("*"+" "+texto+" *")+"\n"
+        return ln2+ln1+ln0+ln1+ln2
 
         
 #
